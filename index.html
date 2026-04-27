@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Kitchen Display</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-white h-screen overflow-hidden select-none">
+
+  <button id="theme-toggle"
+    class="fixed top-3 right-3 z-10 w-9 h-9 rounded-full bg-gray-200 dark:bg-slate-700 text-lg flex items-center justify-center hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"
+    onclick="toggleTheme()" title="Toggle light/dark mode">
+    <span id="theme-icon">☀️</span>
+  </button>
+
+  <div class="h-full grid grid-cols-2 gap-4 p-4">
+
+    <!-- Left: Weather + Clock -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 flex flex-col gap-4 ">
+
+      <!-- Clock + Date -->
+      <div>
+        <div id="clock" class="text-6xl font-bold tabular-nums tracking-tight">--:-- --</div>
+        <div id="date" class="text-gray-500 dark:text-slate-400 text-lg mt-1"></div>
+      </div>
+
+      <!-- Current Conditions -->
+      <div class="flex items-start justify-between flex-1">
+        <div>
+          <div id="temp" class="text-8xl font-bold leading-none">--°</div>
+          <div id="condition" class="text-2xl text-gray-600 dark:text-slate-300 mt-2">Loading...</div>
+          <div id="hi-lo" class="text-gray-500 dark:text-slate-400 mt-1 text-lg"></div>
+          <div id="feels-like" class="text-gray-500 dark:text-slate-400 text-lg"></div>
+        </div>
+        <div id="weather-icon" class="text-8xl mt-1 leading-none"></div>
+      </div>
+
+      <!-- 5-Day Forecast -->
+      <div id="forecast" class="grid grid-cols-7 gap-1 pt-4 border-t border-gray-200 dark:border-slate-700">
+        <!-- JS-populated -->
+      </div>
+    </div>
+
+    <!-- Right: School Lunch -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 flex flex-col ">
+      <div class="mb-5">
+        <div class="text-gray-500 dark:text-slate-400 text-sm uppercase tracking-widest font-semibold">School Lunch</div>
+        <div id="meal-week" class="text-gray-400 dark:text-slate-500 text-sm mt-0.5"></div>
+      </div>
+      <div id="meal-plan" class="flex flex-col gap-5 flex-1 justify-start">
+        <!-- JS-populated -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Theme ────────────────────────────────────────────────────────────────
+    function applyTheme(dark) {
+      document.documentElement.classList.toggle('dark', dark);
+      document.getElementById('theme-icon').textContent = dark ? '☀️' : '🌙';
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+      applyTheme(!isDark);
+    }
+
+    // Init: localStorage → system preference → dark default
+    (function () {
+      const stored = localStorage.getItem('theme');
+      if (stored) {
+        applyTheme(stored === 'dark');
+      } else {
+        applyTheme(!window.matchMedia('(prefers-color-scheme: light)').matches);
+      }
+    })();
+
+    // ── Config ──────────────────────────────────────────────────────────────
+    const LAT = 39.1836;
+    const LON = -96.5717;
+
+    // ── Weather code map ─────────────────────────────────────────────────────
+    const CODES = {
+      0:  { icon: '☀️',  label: 'Clear' },
+      1:  { icon: '🌤️', label: 'Mostly Clear' },
+      2:  { icon: '⛅',  label: 'Partly Cloudy' },
+      3:  { icon: '☁️',  label: 'Overcast' },
+      45: { icon: '🌫️', label: 'Foggy' },
+      48: { icon: '🌫️', label: 'Freezing Fog' },
+      51: { icon: '🌦️', label: 'Light Drizzle' },
+      53: { icon: '🌦️', label: 'Drizzle' },
+      55: { icon: '🌧️', label: 'Heavy Drizzle' },
+      61: { icon: '🌦️', label: 'Light Rain' },
+      63: { icon: '🌧️', label: 'Rain' },
+      65: { icon: '🌧️', label: 'Heavy Rain' },
+      71: { icon: '🌨️', label: 'Light Snow' },
+      73: { icon: '🌨️', label: 'Snow' },
+      75: { icon: '❄️',  label: 'Heavy Snow' },
+      77: { icon: '🌨️', label: 'Snow Grains' },
+      80: { icon: '🌦️', label: 'Showers' },
+      81: { icon: '🌧️', label: 'Heavy Showers' },
+      82: { icon: '⛈️',  label: 'Violent Showers' },
+      85: { icon: '🌨️', label: 'Snow Showers' },
+      86: { icon: '🌨️', label: 'Heavy Snow Showers' },
+      95: { icon: '⛈️',  label: 'Thunderstorm' },
+      96: { icon: '⛈️',  label: 'Storm w/ Hail' },
+      99: { icon: '⛈️',  label: 'Storm w/ Heavy Hail' },
+    };
+
+    function wx(code) {
+      return CODES[code] || { icon: '🌡️', label: 'Unknown' };
+    }
+
+    // ── Clock ────────────────────────────────────────────────────────────────
+    function updateClock() {
+      const now = new Date();
+      const h = now.getHours();
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      document.getElementById('clock').textContent = `${h % 12 || 12}:${m} ${ampm}`;
+      document.getElementById('date').textContent = now.toLocaleDateString('en-US', {
+        weekday: 'long', month: 'long', day: 'numeric',
+      });
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── Weather ──────────────────────────────────────────────────────────────
+    async function loadWeather() {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast`
+          + `?latitude=${LAT}&longitude=${LON}`
+          + `&current=temperature_2m,apparent_temperature,weather_code`
+          + `&daily=weather_code,temperature_2m_max,temperature_2m_min`
+          + `&temperature_unit=fahrenheit&timezone=America%2FChicago&forecast_days=7`;
+
+        const data = await fetch(url).then(r => r.json());
+        const cur = data.current;
+        const d = data.daily;
+        const w = wx(cur.weather_code);
+
+        document.getElementById('temp').textContent = `${Math.round(cur.temperature_2m)}°`;
+        document.getElementById('condition').textContent = w.label;
+        document.getElementById('weather-icon').textContent = w.icon;
+        document.getElementById('hi-lo').textContent =
+          `H: ${Math.round(d.temperature_2m_max[0])}°  ·  L: ${Math.round(d.temperature_2m_min[0])}°`;
+        document.getElementById('feels-like').textContent =
+          `Feels like ${Math.round(cur.apparent_temperature)}°`;
+
+        const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const todayDow = new Date().getDay();
+        document.getElementById('forecast').innerHTML = d.time.map((dateStr, i) => {
+          const day = new Date(dateStr + 'T12:00:00');
+          const fw = wx(d.weather_code[i]);
+          const isToday = day.getDay() === todayDow && i === 0;
+          return `<div class="flex flex-col items-center gap-1 rounded-xl px-1 py-1.5 ${isToday ? 'bg-sky-500/20' : ''}">
+            <div class="text-xs font-semibold ${isToday ? 'text-sky-400' : 'text-gray-500 dark:text-slate-400'}">${DAY_NAMES[day.getDay()]}</div>
+            <div class="text-2xl">${fw.icon}</div>
+            <div class="font-semibold text-sm">${Math.round(d.temperature_2m_max[i])}°</div>
+            <div class="text-gray-500 dark:text-slate-400 text-xs">${Math.round(d.temperature_2m_min[i])}°</div>
+          </div>`;
+        }).join('');
+      } catch {
+        document.getElementById('condition').textContent = 'Weather unavailable';
+      }
+    }
+
+    loadWeather();
+    setInterval(loadWeather, 10 * 60 * 1000);
+
+    // ── Meal Plan ────────────────────────────────────────────────────────────
+    async function loadMealPlan() {
+      try {
+        const today = new Date();
+        const dow = today.getDay();
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+        const friday = new Date(monday);
+        friday.setDate(monday.getDate() + 4);
+
+        const fmt = d => d.toISOString().split('T')[0];
+        const url = `https://api.linqconnect.com/api/FamilyMenu`
+          + `?buildingId=ac044ccd-5f75-eb11-a2cb-8773563292cf`
+          + `&districtId=47a03d33-b86b-eb11-a2c6-ab089379ce68`
+          + `&startDate=${fmt(monday)}&endDate=${fmt(friday)}`;
+
+        const data = await fetch(url).then(r => r.json());
+
+        const lunchSession = data.FamilyMenuSessions?.find(s => s.ServingSession === 'Lunch');
+        const days = lunchSession?.MenuPlans?.[0]?.Days || [];
+
+        // Map day-of-week number → { name, items }
+        const mealByDow = {};
+        for (const day of days) {
+          const d = new Date(day.Date + ' 12:00:00');
+          const dayDow = d.getDay();
+          if (dayDow >= 1 && dayDow <= 5) {
+            const meal = day.MenuMeals?.[0];
+            const proteinGrain = meal?.RecipeCategories
+              ?.find(c => c.CategoryName.startsWith('Protein and Grain'))
+              ?.Recipes?.map(r => r.RecipeName) || [];
+            mealByDow[dayDow] = { name: meal?.MenuMealName || '—', proteinGrain };
+          }
+        }
+
+        const monthFmt = { month: 'short', day: 'numeric' };
+        document.getElementById('meal-week').textContent =
+          `${monday.toLocaleDateString('en-US', monthFmt)} – ${friday.toLocaleDateString('en-US', monthFmt)}`;
+
+        const SHORT = ['Mon','Tue','Wed','Thu','Fri'];
+        const todayDow = today.getDay();
+        document.getElementById('meal-plan').innerHTML = SHORT.map((short, i) => {
+          const dayDow = i + 1;
+          const isToday = todayDow === dayDow;
+          const { name, proteinGrain } = mealByDow[dayDow] || { name: '—', proteinGrain: [] };
+          return `<div class="flex items-start gap-4 p-3 rounded-xl ${isToday
+            ? 'bg-sky-500/20 border border-sky-500/30'
+            : 'bg-gray-100 dark:bg-slate-700/40'}">
+            <div class="w-12 shrink-0">
+              <div class="text-base font-semibold ${isToday ? 'text-sky-400' : 'text-gray-500 dark:text-slate-400'}">${short}</div>
+            </div>
+            <div>
+              <div class="text-base font-medium ${isToday ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-slate-200'}">${name}</div>
+              ${proteinGrain.length ? `<div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">${proteinGrain.join(' · ')}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('');
+      } catch {
+        document.getElementById('meal-plan').innerHTML =
+          '<div class="text-gray-500 dark:text-slate-400 text-sm">Could not load lunch menu.</div>';
+      }
+    }
+
+    loadMealPlan();
+    // Refresh at midnight so the week rolls over automatically
+    const msUntilMidnight = () => {
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now;
+    };
+    setTimeout(() => { loadMealPlan(); setInterval(loadMealPlan, 24 * 60 * 60 * 1000); }, msUntilMidnight());
+  </script>
+</body>
+</html>
