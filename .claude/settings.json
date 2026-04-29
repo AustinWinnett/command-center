@@ -29,7 +29,12 @@
       "Bash(/usr/bin/curl -s -H 'User-Agent: Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/124.0.0.0 Safari/537.36' -H 'Accept: application/json, text/plain, */*' -H 'Referer: https://linqconnect.com/public/menu/D5H4SS?buildingId=ac044ccd-5f75-eb11-a2cb-8773563292cf' -H 'Origin: https://linqconnect.com' 'https://api.linqconnect.com/api/FamilyMenu?buildingId=ac044ccd-5f75-eb11-a2cb-8773563292cf&districtId=47a03d33-b86b-eb11-a2c6-ab089379ce68')",
       "Bash(date -v+7d +%Y-%m-%d)",
       "Bash(/usr/bin/curl -s -H 'User-Agent: Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/124.0.0.0 Safari/537.36' -H 'Accept: application/json, text/plain, */*' -H 'Referer: https://linqconnect.com/public/menu/D5H4SS?buildingId=ac044ccd-5f75-eb11-a2cb-8773563292cf' -H 'Origin: https://linqconnect.com' 'https://api.linqconnect.com/api/FamilyMenu?buildingId=ac044ccd-5f75-eb11-a2cb-8773563292cf&districtId=47a03d33-b86b-eb11-a2c6-ab089379ce68&startDate=__TRACKED_VAR__&endDate=__TRACKED_VAR__')",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(git -C \"/Users/austin/Documents/Personal Projects/command-center\" remote -v)",
+      "Bash(git -C \"/Users/austin/Documents/Personal Projects/command-center\" log --oneline -5)",
+      "Bash(git -C \"/Users/austin/Documents/Personal Projects/command-center\" status)",
+      "Bash(git -C \"/Users/austin/Documents/Personal Projects/command-center\" diff origin/main HEAD)",
+      "Bash(git -C \"/Users/austin/Documents/Personal Projects/command-center\" show --stat HEAD)"
     ]
   }
 }
