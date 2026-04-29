@@ -62,25 +62,29 @@
         </div>
 
         <div class="grid grid-cols-4 gap-3">
-          <div class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col">
+          <label class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col chore-item cursor-pointer duration-150 border border-transparent" data-chore="0">
+            <input type="checkbox" class="hidden" onchange="toggleChore(this)" aria-label="Clean Bathrooms">
             <div class="text-4xl text-center mb-1">🚽</div>
             <div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 flex items-center justify-center flex-1">Clean Bathrooms</div>
-          </div>
+          </label>
 
-          <div class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col">
+          <label class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col chore-item cursor-pointer duration-150 border border-transparent" data-chore="1">
+            <input type="checkbox" class="hidden" onchange="toggleChore(this)" aria-label="Fold Laundry">
             <div class="text-4xl text-center mb-1">🧺</div>
             <div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 flex items-center justify-center flex-1">Fold Laundry</div>
-          </div>
+          </label>
 
-          <div class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col">
+          <label class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col chore-item cursor-pointer duration-150 border border-transparent" data-chore="2">
+            <input type="checkbox" class="hidden" onchange="toggleChore(this)" aria-label="Empty Dishwasher">
             <div class="text-4xl text-center mb-1">🍽</div>
             <div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 flex items-center justify-center flex-1">Empty Dishwasher</div>
-          </div>
+          </label>
 
-          <div class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col">
+          <label class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col chore-item cursor-pointer duration-150 border border-transparent" data-chore="3">
+            <input type="checkbox" class="hidden" onchange="toggleChore(this)" aria-label="Clean Living Room">
             <div class="text-4xl text-center mb-1">🛋</div>
             <div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 flex items-center justify-center flex-1">Clean Living Room</div>
-          </div>
+          </label>
         </div>
       </div>
     </div>
@@ -268,12 +272,52 @@
     }
 
     loadMealPlan();
-    // Refresh at midnight so the week rolls over automatically
+
+    // ── Chores ───────────────────────────────────────────────────────────────
+    function applyChoreStyle(label, checked) {
+      if (checked) {
+        label.classList.remove('bg-gray-100', 'dark:bg-slate-700/40');
+        label.classList.add('bg-sky-500/20', 'border-sky-500/30');
+      } else {
+        label.classList.add('bg-gray-100', 'dark:bg-slate-700/40');
+        label.classList.remove('bg-sky-500/20', 'border-sky-500/30');
+      }
+    }
+
+    function toggleChore(checkbox) {
+      applyChoreStyle(checkbox.closest('.chore-item'), checkbox.checked);
+      const state = [...document.querySelectorAll('.chore-item input')].map(cb => cb.checked);
+      localStorage.setItem('choreState', JSON.stringify(state));
+    }
+
+    function resetChores() {
+      document.querySelectorAll('.chore-item input').forEach(cb => {
+        cb.checked = false;
+        applyChoreStyle(cb.closest('.chore-item'), false);
+      });
+      localStorage.removeItem('choreState');
+    }
+
+    // Restore checked state from localStorage
+    (function () {
+      const saved = JSON.parse(localStorage.getItem('choreState') || 'null');
+      if (!saved) return;
+      document.querySelectorAll('.chore-item input').forEach((cb, i) => {
+        cb.checked = !!saved[i];
+        applyChoreStyle(cb.closest('.chore-item'), cb.checked);
+      });
+    })();
+
+    // ── Midnight refresh ─────────────────────────────────────────────────────
     const msUntilMidnight = () => {
       const now = new Date();
       return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now;
     };
-    setTimeout(() => { loadMealPlan(); setInterval(loadMealPlan, 24 * 60 * 60 * 1000); }, msUntilMidnight());
+    setTimeout(() => {
+      loadMealPlan();
+      resetChores();
+      setInterval(() => { loadMealPlan(); resetChores(); }, 24 * 60 * 60 * 1000);
+    }, msUntilMidnight());
   </script>
 </body>
 </html>
