@@ -208,13 +208,47 @@
     loadWeather();
     setInterval(loadWeather, 10 * 60 * 1000);
 
+    // ── Meal Emoji ───────────────────────────────────────────────────────────
+    const MEAL_EMOJI_RULES = [
+      [/pizza/i, '🍕'],
+      [/burger|hamburger/i, '🍔'],
+      [/hot.?dog/i, '🌭'],
+      [/taco/i, '🌮'],
+      [/burrito|quesadilla/i, '🌯'],
+      [/nacho/i, '🧀'],
+      [/pasta|spaghetti|lasagna|mac.{0,4}cheese|penne|fettuccine/i, '🍝'],
+      [/sandwich|sub|hoagie|wrap/i, '🥪'],
+      [/chicken/i, '🍗'],
+      [/fish|shrimp|tilapia|salmon|cod/i, '🐟'],
+      [/corn.?dog/i, '🌽'],
+      [/waffle/i, '🧇'],
+      [/pancake/i, '🥞'],
+      [/breakfast|egg/i, '🍳'],
+      [/soup|chili|stew/i, '🍲'],
+      [/salad/i, '🥗'],
+      [/rice/i, '🍚'],
+      [/pretzel/i, '🥨'],
+      [/yogurt|parfait/i, '🫙'],
+      [/fruit/i, '🍎'],
+    ];
+
+    function getMealEmoji(name, proteinGrain) {
+      const haystack = [name, ...proteinGrain].join(' ');
+      for (const [re, emoji] of MEAL_EMOJI_RULES) {
+        if (re.test(haystack)) return emoji;
+      }
+      return '🍽️';
+    }
+
     // ── Meal Plan ────────────────────────────────────────────────────────────
     async function loadMealPlan() {
       try {
         const today = new Date();
         const dow = today.getDay();
         const monday = new Date(today);
-        monday.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+        // Sat/Sun → advance to next Monday; Mon–Fri → rewind to this Monday
+        const daysToMonday = dow === 0 ? 1 : dow === 6 ? 2 : 1 - dow;
+        monday.setDate(today.getDate() + daysToMonday);
         const friday = new Date(monday);
         friday.setDate(monday.getDate() + 4);
 
@@ -253,11 +287,12 @@
           const dayDow = i + 1;
           const isToday = todayDow === dayDow;
           const { name, proteinGrain } = mealByDow[dayDow] || { name: '—', proteinGrain: [] };
+          const emoji = getMealEmoji(name, proteinGrain);
           return `<div class="flex items-start gap-4 p-3 rounded-xl ${isToday
             ? 'bg-sky-500/20 border border-sky-500/30'
             : 'bg-gray-100 dark:bg-slate-700/40'}">
-            <div class="w-12 shrink-0">
-              <div class="text-base font-semibold ${isToday ? 'text-sky-400' : 'text-gray-500 dark:text-slate-400'}">${short}</div>
+            <div class="w-12 shrink-0 flex flex-col items-center gap-1">
+              <div class="text-xs font-semibold ${isToday ? 'text-sky-400' : 'text-gray-500 dark:text-slate-400'}">${short}</div>
             </div>
             <div>
               <div class="text-base font-medium ${isToday ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-slate-200'}">${name}</div>
@@ -272,6 +307,7 @@
     }
 
     loadMealPlan();
+    setInterval(loadMealPlan, 60 * 60 * 1000);
 
     // ── Chores ───────────────────────────────────────────────────────────────
     function applyChoreStyle(label, checked) {
