@@ -34,7 +34,9 @@
       "Bash(git -C \"/Users/austin/Documents/Personal Projects/command-center\" log --oneline -5)",
       "Bash(git -C \"/Users/austin/Documents/Personal Projects/command-center\" status)",
       "Bash(git -C \"/Users/austin/Documents/Personal Projects/command-center\" diff origin/main HEAD)",
-      "Bash(git -C \"/Users/austin/Documents/Personal Projects/command-center\" show --stat HEAD)"
+      "Bash(git -C \"/Users/austin/Documents/Personal Projects/command-center\" show --stat HEAD)",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "ClaudeInChromeDomain(127.0.0.1:8765)"
     ]
   }
 }

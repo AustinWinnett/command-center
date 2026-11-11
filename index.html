@@ -6,6 +6,85 @@
   <title>Kitchen Display</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
+  <style>
+    /* ── CSS art sizes: change these to resize the drawings ─────────────── */
+    :root {
+      --art-wear:     5rem;    /* clothing badge on the weather side */
+      --art-step:     3.75rem; /* morning routine steps */
+      --art-step-now: 4.5rem;  /* the current morning step */
+    }
+
+    /* ── CSS art ──────────────────────────────────────────────────────────
+       Each piece is a 1em × 1em box, so font-size controls its size.
+       Inner parts are positioned in em, which works like a percentage
+       of the box (.25em = 25%). */
+    .art { position: relative; display: inline-block; width: 1em; height: 1em; flex-shrink: 0; }
+    .art * { position: absolute; display: block; }
+
+    /* Cereal bowl */
+    .bowl .foot   { left: .34em; top: .8em;  width: .32em; height: .08em; background: #1d4ed8; border-radius: .03em; }
+    .bowl .body   { left: .08em; top: .44em; width: .84em; height: .4em;  background: #3b82f6;
+                    border-radius: 0 0 .42em .42em / 0 0 .4em .4em; box-shadow: inset 0 -.06em 0 #2563eb; }
+    .bowl .rim    { left: .06em; top: .37em; width: .88em; height: .15em; background: #60a5fa; border-radius: 50%; }
+    .bowl .spoon  { left: .58em; top: .06em; width: .07em; height: .42em; background: #94a3b8; border-radius: .04em; transform: rotate(28deg); }
+    .bowl .milk   { left: .1em;  top: .39em; width: .8em;  height: .11em; background: #f8fafc; border-radius: 50%; }
+    .bowl .o      { width: .14em; height: .14em; border: .045em solid #f59e0b; border-radius: 50%; }
+    .bowl .o1 { left: .18em; top: .35em; } .bowl .o2 { left: .32em; top: .32em; } .bowl .o3 { left: .44em; top: .38em; }
+    .bowl .o4 { left: .6em;  top: .34em; } .bowl .o5 { left: .72em; top: .38em; }
+
+    /* Shirts & coat (shared parts) */
+    .shirt .sl, .shirt .sr, .shirt .body { background: var(--c); }
+    .shirt .collar { background: var(--d); }
+
+    /* T-shirt */
+    .tee { --c: #ef4444; --d: #b91c1c; }
+    .tee .sl     { left: .07em; top: .3em;  width: .3em; height: .2em; border-radius: .03em; transform: rotate(-40deg); box-shadow: inset .045em 0 0 var(--d); }
+    .tee .sr     { left: .63em; top: .3em;  width: .3em; height: .2em; border-radius: .03em; transform: rotate(40deg);  box-shadow: inset -.045em 0 0 var(--d); }
+    .tee .body   { left: .25em; top: .22em; width: .5em; height: .66em; border-radius: .04em .04em .05em .05em; }
+    .tee .collar { left: .38em; top: .22em; width: .24em; height: .11em; border-radius: 0 0 .12em .12em; }
+
+    /* Long sleeves */
+    .long { --c: #22c55e; --d: #15803d; }
+    .long .sl     { left: .13em; top: .25em; width: .14em; height: .56em; border-radius: .04em; transform: rotate(20deg);  box-shadow: inset 0 -.07em 0 var(--d); }
+    .long .sr     { left: .73em; top: .25em; width: .14em; height: .56em; border-radius: .04em; transform: rotate(-20deg); box-shadow: inset 0 -.07em 0 var(--d); }
+    .long .body   { left: .25em; top: .22em; width: .5em;  height: .66em; border-radius: .04em .04em .05em .05em; box-shadow: inset 0 -.06em 0 var(--d); }
+    .long .collar { left: .38em; top: .22em; width: .24em; height: .11em; border-radius: 0 0 .12em .12em; }
+
+    /* Coat */
+    .coat { --c: #b45309; --d: #78350f; }
+    .coat .sl     { left: .11em; top: .25em; width: .16em; height: .58em; border-radius: .05em; transform: rotate(18deg);  box-shadow: inset 0 -.07em 0 var(--d); }
+    .coat .sr     { left: .73em; top: .25em; width: .16em; height: .58em; border-radius: .05em; transform: rotate(-18deg); box-shadow: inset 0 -.07em 0 var(--d); }
+    .coat .body   { left: .23em; top: .2em;  width: .54em; height: .74em; border-radius: .06em .06em .04em .04em; }
+    .coat .zip    { left: .49em; top: .3em;  width: .025em; height: .64em; background: var(--d); }
+    .coat .pl, .coat .pr { top: .66em; width: .13em; height: .03em; background: var(--d); border-radius: .01em; }
+    .coat .pl { left: .29em; } .coat .pr { left: .58em; }
+    .coat .collar { left: .29em; top: .13em; width: .42em; height: .15em; background: #fde68a; border-radius: .08em; }
+
+    /* Toothbrush */
+    .toothbrush .tb       { left: 0; top: 0; width: 1em; height: 1em; transform: rotate(-35deg); }
+    .toothbrush .handle   { left: .04em; top: .54em; width: .9em;  height: .09em; background: #0ea5e9; border-radius: .045em; }
+    .toothbrush .grip     { left: .12em; top: .54em; width: .22em; height: .09em; background: #0369a1; border-radius: .045em; }
+    .toothbrush .bristles { left: .66em; top: .42em; width: .26em; height: .12em; border-radius: .02em .02em 0 0;
+                            background: repeating-linear-gradient(90deg, #f8fafc 0 .03em, #94a3b8 .03em .045em); }
+    .toothbrush .paste    { left: .63em; top: .31em; width: .31em; height: .12em; border-radius: .06em; box-shadow: 0 0 0 .012em #cbd5e1;
+                            background: linear-gradient(180deg, #fff 0 33%, #2dd4bf 33% 66%, #fff 66%); }
+
+    /* Schoolhouse */
+    .school .troof  { left: .36em; top: .02em; width: 0; height: 0; border: solid transparent; border-width: 0 .14em .13em; border-bottom-color: #7c2d12; }
+    .school .tower  { left: .4em;  top: .15em; width: .2em;  height: .2em;  background: #dc2626; }
+    .school .bell   { left: .46em; top: .19em; width: .08em; height: .08em; background: #facc15; border-radius: 50% 50% .02em .02em; }
+    .school .roof   { left: .04em; top: .3em;  width: 0; height: 0; border: solid transparent; border-width: 0 .46em .22em; border-bottom-color: #7c2d12; }
+    .school .body   { left: .1em;  top: .52em; width: .8em;  height: .38em; background: #ef4444; }
+    .school .round  { left: .45em; top: .4em;  width: .1em;  height: .1em;  background: #fef3c7; border-radius: 50%; }
+    .school .door   { left: .42em; top: .66em; width: .16em; height: .24em; background: #78350f; border-radius: .08em .08em 0 0; }
+    .school .win    { top: .6em; width: .15em; height: .13em; background: #bae6fd; border: .02em solid #fff; }
+    .school .wl { left: .17em; } .school .wr { left: .68em; }
+    .school .ground { left: .06em; top: .9em;  width: .88em; height: .04em; background: #a8a29e; border-radius: .02em; }
+
+    /* Gentle bob on the current morning step */
+    @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-.06em); } }
+    .bob .art { animation: bob 1.6s ease-in-out infinite; }
+  </style>
 </head>
 <body class="bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-white h-screen overflow-hidden select-none">
 
@@ -33,6 +112,10 @@
           <div id="condition" class="text-2xl text-gray-600 dark:text-slate-300 mt-2">Loading...</div>
           <div id="hi-lo" class="text-gray-500 dark:text-slate-400 mt-1 text-lg"></div>
           <div id="feels-like" class="text-gray-500 dark:text-slate-400 text-lg"></div>
+          <div id="wear" class="hidden mt-4 inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700/40">
+            <span id="wear-icon" class="leading-none flex" style="font-size: var(--art-wear)"></span>
+            <span id="wear-label" class="text-xl font-medium"></span>
+          </div>
         </div>
         <div id="weather-icon" class="text-8xl mt-1 leading-none"></div>
       </div>
@@ -55,36 +138,11 @@
         </div>
       </div>
 
-      <div class="flex-initial bg-white dark:bg-slate-800 rounded-2xl p-6">
-        <div class="mb-5">
-          <div class="text-gray-500 dark:text-slate-400 text-sm uppercase tracking-widest font-semibold">Chores</div>
-          <div class="text-gray-400 dark:text-slate-500 text-sm mt-0.5">$0.50 or 30 minutes of screentime</div>
-        </div>
-
-        <div class="grid grid-cols-4 gap-3">
-          <label class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col chore-item cursor-pointer duration-150 border border-transparent" data-chore="0">
-            <input type="checkbox" class="hidden" onchange="toggleChore(this)" aria-label="Clean Bathrooms">
-            <div class="text-4xl text-center mb-1">🚽</div>
-            <div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 flex items-center justify-center flex-1">Clean Bathrooms</div>
-          </label>
-
-          <label class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col chore-item cursor-pointer duration-150 border border-transparent" data-chore="1">
-            <input type="checkbox" class="hidden" onchange="toggleChore(this)" aria-label="Fold Laundry">
-            <div class="text-4xl text-center mb-1">🧺</div>
-            <div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 flex items-center justify-center flex-1">Fold Laundry</div>
-          </label>
-
-          <label class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col chore-item cursor-pointer duration-150 border border-transparent" data-chore="2">
-            <input type="checkbox" class="hidden" onchange="toggleChore(this)" aria-label="Empty Dishwasher">
-            <div class="text-4xl text-center mb-1">🍽</div>
-            <div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 flex items-center justify-center flex-1">Empty Dishwasher</div>
-          </label>
-
-          <label class="flex-initial text-center p-3 rounded-xl bg-gray-100 dark:bg-slate-700/40 flex flex-col chore-item cursor-pointer duration-150 border border-transparent" data-chore="3">
-            <input type="checkbox" class="hidden" onchange="toggleChore(this)" aria-label="Clean Living Room">
-            <div class="text-4xl text-center mb-1">🛋</div>
-            <div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 flex items-center justify-center flex-1">Clean Living Room</div>
-          </label>
+      <!-- Morning routine: only shown during the morning window (see MORNING config) -->
+      <div id="morning-card" class="hidden bg-white dark:bg-slate-800 rounded-2xl p-5">
+        <div class="mb-3 text-gray-500 dark:text-slate-400 text-sm uppercase tracking-widest font-semibold">Morning Routine</div>
+        <div id="morning-steps" class="grid grid-cols-4 gap-3">
+          <!-- JS-populated -->
         </div>
       </div>
     </div>
@@ -150,9 +208,44 @@
       return CODES[code] || { icon: '🌡️', label: 'Unknown' };
     }
 
+    // ── What to wear (based on today's high) ─────────────────────────────────
+    let todayWear = null;
+
+    function getWear(high) {
+      if (high < 50) return { art: 'coat', label: 'Coat & long sleeves' };
+      if (high < 65) return { art: 'longSleeves', label: 'Long sleeves' };
+      if (high > 75) return { art: 'tee', label: 'Short sleeves' };
+      return { art: 'tee', label: 'Short or long sleeves' };
+    }
+
+    // CSS art markup (styles are in the <style> block at the top)
+    const ART = {
+      bowl: `<div class="art bowl"><i class="foot"></i><i class="body"></i><i class="rim"></i><i class="spoon"></i><i class="milk"></i>
+             <i class="o o1"></i><i class="o o2"></i><i class="o o3"></i><i class="o o4"></i><i class="o o5"></i></div>`,
+      tee: `<div class="art shirt tee"><i class="sl"></i><i class="sr"></i><i class="body"></i><i class="collar"></i></div>`,
+      longSleeves: `<div class="art shirt long"><i class="sl"></i><i class="sr"></i><i class="body"></i><i class="collar"></i></div>`,
+      coat: `<div class="art shirt coat"><i class="sl"></i><i class="sr"></i><i class="body"></i><i class="zip"></i>
+             <i class="pl"></i><i class="pr"></i><i class="collar"></i></div>`,
+      toothbrush: `<div class="art toothbrush"><div class="tb"><i class="handle"></i><i class="grip"></i><i class="bristles"></i><i class="paste"></i></div></div>`,
+      school: `<div class="art school"><i class="troof"></i><i class="tower"></i><i class="bell"></i><i class="roof"></i><i class="body"></i>
+               <i class="round"></i><i class="door"></i><i class="win wl"></i><i class="win wr"></i><i class="ground"></i></div>`,
+    };
+
+    // ── Time (add ?time=6:45 to the URL to preview a different time) ─────────
+    const TIME_OVERRIDE = new URLSearchParams(location.search).get('time');
+
+    function getNow() {
+      const d = new Date();
+      if (TIME_OVERRIDE) {
+        const [h, m] = TIME_OVERRIDE.split(':').map(Number);
+        d.setHours(h, m || 0, d.getSeconds());
+      }
+      return d;
+    }
+
     // ── Clock ────────────────────────────────────────────────────────────────
     function updateClock() {
-      const now = new Date();
+      const now = getNow();
       const h = now.getHours();
       const m = String(now.getMinutes()).padStart(2, '0');
       const ampm = h >= 12 ? 'PM' : 'AM';
@@ -186,6 +279,11 @@
           `H: ${Math.round(d.temperature_2m_max[0])}°  ·  L: ${Math.round(d.temperature_2m_min[0])}°`;
         document.getElementById('feels-like').textContent =
           `Feels like ${Math.round(cur.apparent_temperature)}°`;
+
+        todayWear = getWear(d.temperature_2m_max[0]);
+        document.getElementById('wear-icon').innerHTML = ART[todayWear.art];
+        document.getElementById('wear-label').textContent = todayWear.label;
+        document.getElementById('wear').classList.remove('hidden');
 
         const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
         const todayDow = new Date().getDay();
@@ -309,40 +407,53 @@
     loadMealPlan();
     setInterval(loadMealPlan, 60 * 60 * 1000);
 
-    // ── Chores ───────────────────────────────────────────────────────────────
-    function applyChoreStyle(label, checked) {
-      if (checked) {
-        label.classList.remove('bg-gray-100', 'dark:bg-slate-700/40');
-        label.classList.add('bg-sky-500/20', 'border-sky-500/30');
-      } else {
-        label.classList.add('bg-gray-100', 'dark:bg-slate-700/40');
-        label.classList.remove('bg-sky-500/20', 'border-sky-500/30');
-      }
+    // ── Morning Routine ──────────────────────────────────────────────────────
+    const MORNING = {
+      start: '6:30',          // card appears
+      end:   '7:30',          // card disappears
+      days:  [1, 2, 3, 4, 5], // Mon–Fri
+      steps: [
+        { start: '6:30', end: '7:00', art: 'bowl',       label: 'Breakfast' },
+        { start: '7:00', end: '7:10', art: 'tee',        label: 'Get Dressed' },
+        { start: '7:10', end: '7:20', art: 'toothbrush', label: 'Brush Teeth' },
+        { start: '7:20', end: '7:30', art: 'school',     label: 'Go to School' },
+      ],
+    };
+
+    const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+
+    let lastMorningKey = null;
+
+    function renderMorning(force = false) {
+      const t = getNow();
+      const mins = t.getHours() * 60 + t.getMinutes();
+      const visible = MORNING.days.includes(t.getDay())
+        && mins >= toMin(MORNING.start) && mins < toMin(MORNING.end);
+
+      // Only redraw when something changes (this runs every second)
+      const key = visible ? mins : 'hidden';
+      if (!force && key === lastMorningKey) return;
+      lastMorningKey = key;
+
+      document.getElementById('morning-card').classList.toggle('hidden', !visible);
+      if (!visible) return;
+
+      document.getElementById('morning-steps').innerHTML = MORNING.steps.map(step => {
+        const active = mins >= toMin(step.start) && mins < toMin(step.end);
+        const done = mins >= toMin(step.end);
+        const tileClass = active
+          ? 'bg-sky-500/20 border-sky-500/50 scale-105 shadow-lg'
+          : `bg-gray-100 dark:bg-slate-700/40 border-transparent ${done ? 'opacity-40' : ''}`;
+        return `<div class="text-center px-2 py-3 rounded-xl border-2 transition-all duration-300 ${tileClass}">
+          <div class="text-lg font-bold tabular-nums whitespace-nowrap ${active ? 'text-sky-500' : 'text-gray-500 dark:text-slate-400'}">${step.start} – ${step.end}</div>
+          <div class="${active ? 'bob' : ''} my-2 flex justify-center" style="font-size: var(${active ? '--art-step-now' : '--art-step'})">${ART[step.art]}</div>
+          <div class="text-base font-semibold whitespace-nowrap">${step.label}</div>
+        </div>`;
+      }).join('');
     }
 
-    function toggleChore(checkbox) {
-      applyChoreStyle(checkbox.closest('.chore-item'), checkbox.checked);
-      const state = [...document.querySelectorAll('.chore-item input')].map(cb => cb.checked);
-      localStorage.setItem('choreState', JSON.stringify(state));
-    }
-
-    function resetChores() {
-      document.querySelectorAll('.chore-item input').forEach(cb => {
-        cb.checked = false;
-        applyChoreStyle(cb.closest('.chore-item'), false);
-      });
-      localStorage.removeItem('choreState');
-    }
-
-    // Restore checked state from localStorage
-    (function () {
-      const saved = JSON.parse(localStorage.getItem('choreState') || 'null');
-      if (!saved) return;
-      document.querySelectorAll('.chore-item input').forEach((cb, i) => {
-        cb.checked = !!saved[i];
-        applyChoreStyle(cb.closest('.chore-item'), cb.checked);
-      });
-    })();
+    renderMorning();
+    setInterval(renderMorning, 1000);
 
     // ── Midnight refresh ─────────────────────────────────────────────────────
     const msUntilMidnight = () => {
@@ -351,9 +462,32 @@
     };
     setTimeout(() => {
       loadMealPlan();
-      resetChores();
-      setInterval(() => { loadMealPlan(); resetChores(); }, 24 * 60 * 60 * 1000);
+      setInterval(loadMealPlan, 24 * 60 * 60 * 1000);
     }, msUntilMidnight());
+
+    // ── Nightly reload (picks up code changes) ───────────────────────────────
+    const RELOAD_HOUR = 3; // 3 AM
+
+    function msUntilHour(hour) {
+      const now = new Date();
+      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour);
+      if (next <= now) next.setDate(next.getDate() + 1);
+      return next - now;
+    }
+
+    async function nightlyReload() {
+      try {
+        // Make sure the page is reachable first, so a network blip
+        // doesn't leave the display stuck on an error screen
+        const res = await fetch(location.href, { cache: 'no-store' });
+        if (!res.ok) throw new Error(res.status);
+        location.reload();
+      } catch {
+        setTimeout(nightlyReload, 5 * 60 * 1000); // try again in 5 minutes
+      }
+    }
+
+    setTimeout(nightlyReload, msUntilHour(RELOAD_HOUR));
   </script>
 </body>
 </html>
