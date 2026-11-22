@@ -475,20 +475,18 @@
         }
 
         const todayDow = new Date().getDay();
-        const notes = [];
+        // One cell can hold several notes separated by semicolons
+        const split = note => note.split(';').map(s => s.trim()).filter(Boolean);
+        const todays = [], everyDay = [];
         for (const [day = '', note = ''] of rows) {
-          const text = note.trim();
           const d = noteDay(day);
-          if (!text) continue;
-          if (d === todayDow) notes.push({ text, today: true });
-          else if (d === 'every') notes.push({ text, today: false });
+          if (d === todayDow) todays.push(...split(note));
+          else if (d === 'every') everyDay.push(...split(note));
         }
-        notes.sort((a, b) => b.today - a.today); // today's first
+        const notes = [...todays, ...everyDay]; // today's first
 
         el.innerHTML = notes.length
-          ? notes.map(n => `<div class="p-3 rounded-xl border text-base ${n.today
-              ? 'bg-sky-500/20 border-sky-500/30 font-medium text-gray-900 dark:text-white'
-              : 'bg-gray-100 dark:bg-slate-700/40 border-transparent text-gray-700 dark:text-slate-200'}">${escapeHtml(n.text)}</div>`).join('')
+          ? notes.map(text => `<div class="p-3 rounded-xl text-base bg-gray-100 dark:bg-slate-700/40 text-gray-700 dark:text-slate-200">${escapeHtml(text)}</div>`).join('')
           : '<div class="text-gray-400 dark:text-slate-500 text-base italic">Nothing today</div>';
         notesLoaded = true;
       } catch (err) {
