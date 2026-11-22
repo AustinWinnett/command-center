@@ -106,18 +106,28 @@
       </div>
 
       <!-- Current Conditions -->
-      <div class="flex items-start justify-between flex-1">
+      <div class="flex items-start justify-between gap-6">
         <div>
           <div id="temp" class="text-8xl font-bold leading-none">--°</div>
           <div id="condition" class="text-2xl text-gray-600 dark:text-slate-300 mt-2">Loading...</div>
           <div id="hi-lo" class="text-gray-500 dark:text-slate-400 mt-1 text-lg"></div>
           <div id="feels-like" class="text-gray-500 dark:text-slate-400 text-lg"></div>
+        </div>
+        <div class="flex flex-col items-end">
+          <div id="weather-icon" class="text-8xl mt-1 leading-none"></div>
           <div id="wear" class="hidden mt-4 inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-gray-100 dark:bg-slate-700/40">
             <span id="wear-icon" class="leading-none flex" style="font-size: var(--art-wear)"></span>
             <span id="wear-label" class="text-xl font-medium"></span>
           </div>
         </div>
-        <div id="weather-icon" class="text-8xl mt-1 leading-none"></div>
+      </div>
+
+      <!-- Family Notes: read from a published Google Sheet (see NOTES_CSV_URL) -->
+      <div class="flex-1 min-h-0 flex flex-col bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 overflow-hidden">
+        <div class="mb-3 text-gray-500 dark:text-slate-400 text-sm uppercase tracking-widest font-semibold">Family Notes</div>
+        <div id="family-notes" class="flex flex-col gap-2">
+          <!-- JS-populated -->
+        </div>
       </div>
 
       <!-- 5-Day Forecast -->
@@ -150,6 +160,10 @@
   </div>
 
   <script>
+    // ── Family Notes sheet ───────────────────────────────────────────────────
+    // Google Sheets → File → Share → Publish to web → CSV. Paste the link here.
+    const NOTES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQPULgEXEMapufW-KEH5N572j7SBvi2Z0VWKsyqKv3Cw3a6eC_nXXybXb6RerXXZ11vRxjtlDEKvTC7/pub?gid=0&single=true&output=csv';
+
     // ── Theme ────────────────────────────────────────────────────────────────
     function applyTheme(dark) {
       document.documentElement.classList.toggle('dark', dark);
@@ -407,6 +421,88 @@
     loadMealPlan();
     setInterval(loadMealPlan, 60 * 60 * 1000);
 
+    // ── Family Notes ─────────────────────────────────────────────────────────
+    // Sheet columns: Day | Note (first row is headers).
+    // Day is Mon–Sun or "Every Day". Shows today's notes, then the every-day ones.
+
+    // Splits CSV text into rows of fields (handles quotes, commas and line breaks inside notes)
+    function parseCsv(text) {
+      const rows = [];
+      let row = [], field = '', quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (quoted) {
+          if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+          else if (c === '"') quoted = false;
+          else field += c;
+        } else if (c === '"') {
+          quoted = true;
+        } else if (c === ',') {
+          row.push(field); field = '';
+        } else if (c === '\n' || c === '\r') {
+          if (c === '\r' && text[i + 1] === '\n') i++;
+          row.push(field); rows.push(row);
+          row = []; field = '';
+        } else {
+          field += c;
+        }
+      }
+      if (field || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    }
+
+    // "Mon" → 1, "every day" → 'every', anything else → null
+    function noteDay(value) {
+      const v = value.trim().toLowerCase();
+      if (v.replace(/\s+/g, '') === 'everyday') return 'every';
+      const i = ['sun','mon','tue','wed','thu','fri','sat'].indexOf(v.slice(0, 3));
+      return i === -1 ? null : i;
+    }
+
+    const escapeHtml = s => s.replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+    let notesLoaded = false;
+
+    async function loadNotes() {
+      const el = document.getElementById('family-notes');
+      try {
+        let rows = [];
+        if (NOTES_CSV_URL !== 'PASTE_CSV_URL_HERE') {
+          const res = await fetch(NOTES_CSV_URL, { cache: 'no-store' });
+          if (!res.ok) throw new Error(res.status);
+          rows = parseCsv(await res.text()).slice(1); // skip header row
+        }
+
+        const todayDow = new Date().getDay();
+        const notes = [];
+        for (const [day = '', note = ''] of rows) {
+          const text = note.trim();
+          const d = noteDay(day);
+          if (!text) continue;
+          if (d === todayDow) notes.push({ text, today: true });
+          else if (d === 'every') notes.push({ text, today: false });
+        }
+        notes.sort((a, b) => b.today - a.today); // today's first
+
+        el.innerHTML = notes.length
+          ? notes.map(n => `<div class="p-3 rounded-xl border text-base ${n.today
+              ? 'bg-sky-500/20 border-sky-500/30 font-medium text-gray-900 dark:text-white'
+              : 'bg-gray-100 dark:bg-slate-700/40 border-transparent text-gray-700 dark:text-slate-200'}">${escapeHtml(n.text)}</div>`).join('')
+          : '<div class="text-gray-400 dark:text-slate-500 text-base italic">Nothing today</div>';
+        notesLoaded = true;
+      } catch (err) {
+        console.warn('Family Notes failed to load:', err);
+        // Keep showing the last good notes if a refresh fails
+        if (!notesLoaded) {
+          el.innerHTML = '<div class="text-gray-500 dark:text-slate-400 text-sm">Could not load notes.</div>';
+        }
+      }
+    }
+
+    loadNotes();
+    setInterval(loadNotes, 15 * 60 * 1000);
+
     // ── Morning Routine ──────────────────────────────────────────────────────
     const MORNING = {
       start: '6:30',          // card appears
@@ -462,6 +558,7 @@
     };
     setTimeout(() => {
       loadMealPlan();
+      loadNotes(); // switch to the new day's notes right away
       setInterval(loadMealPlan, 24 * 60 * 60 * 1000);
     }, msUntilMidnight());
 
